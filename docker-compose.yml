@@ -1,0 +1,56 @@
+services:
+  # Base de données MongoDB
+  mongodb:
+    image: mongo:7.0
+    container_name: ubereats-mongodb
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_DATABASE: ubereats
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - ubereats-network
+
+  # Backend Node.js
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: ubereats-backend
+    restart: unless-stopped
+    environment:
+      - PORT=5000
+      - MONGODB_URI=mongodb://mongodb:27017/ubereats
+      - JWT_SECRET=your_jwt_secret_key_change_this_in_production
+      - NODE_ENV=production
+    ports:
+      - "5000:5000"
+    depends_on:
+      - mongodb
+    networks:
+      - ubereats-network
+    command: sh -c "sleep 10 && node server.js"
+
+  # Frontend Vue.js
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ubereats-frontend
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+    networks:
+      - ubereats-network
+
+networks:
+  ubereats-network:
+    driver: bridge
+
+volumes:
+  mongodb_data:
+    driver: local

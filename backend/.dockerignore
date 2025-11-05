@@ -1,0 +1,19 @@
+# Fichiers Node
+node_modules
+npm-debug.log
+yarn-error.log
+
+# Fichiers d'environnement
+.env.local
+
+# Fichiers IDE
+.vscode
+.idea
+
+# Fichiers OS
+.DS_Store
+Thumbs.db
+
+# Fichiers de log
+*.log
+logs

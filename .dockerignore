@@ -1,0 +1,27 @@
+# Fichiers Node
+node_modules
+npm-debug.log
+yarn-error.log
+
+# Fichiers de build
+dist
+build
+
+# Fichiers d'environnement
+.env
+.env.local
+.env.*.local
+
+# Fichiers IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# Fichiers OS
+.DS_Store
+Thumbs.db
+
+# Fichiers de log
+*.log
+logs
