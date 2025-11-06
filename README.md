@@ -1,5 +1,8 @@
 # Uber Eats Clone - Application Dockerisée
 
+![CI/CD Pipeline](https://github.com/johanpoyet/ubereats-cicd/workflows/CI%2FCD%20Pipeline/badge.svg)
+[![Docker Hub](https://img.shields.io/badge/Docker%20Hub-ubereats-blue)](https://hub.docker.com/u/johanpoyet)
+
 Clone de l'application Uber Eats développé avec Vue.js, Node.js/Express et MongoDB.
 
 ## 🚀 Démarrage rapide avec Docker

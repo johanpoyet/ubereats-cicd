@@ -6,6 +6,11 @@ on:
   pull_request:
     branches: [ main, master ]
 
+env:
+  NODE_ENV: production
+  MONGODB_URI: ${{ secrets.MONGODB_URI }}
+  JWT_SECRET: ${{ secrets.JWT_SECRET }}
+
 jobs:
   # Job 1: Linting
   lint:
@@ -38,6 +43,29 @@ jobs:
       
       - name: Lint Frontend
         run: npm run lint || echo "Frontend lint completed"
+
+  # Job Audit: Security Audit (runs in parallel with lint)
+  security-audit:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      
+      - name: Run npm audit on Backend
+        working-directory: ./backend
+        run: npm audit --audit-level=moderate || true
+        continue-on-error: true
+      
+      - name: Run npm audit on Frontend
+        run: npm audit --audit-level=moderate || true
+        continue-on-error: true
 
   # Job 2: Tests Backend
   test-backend:
@@ -78,6 +106,15 @@ jobs:
           MONGODB_URI: mongodb://localhost:27017/ubereats-test
           JWT_SECRET: test_secret_key
           NODE_ENV: test
+      
+      - name: Upload Backend Coverage Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-coverage
+          path: backend/coverage/
+          retention-days: 30
+        continue-on-error: true
 
   # Job 3: Tests Frontend
   test-frontend:
@@ -100,6 +137,15 @@ jobs:
       
       - name: Run Frontend Tests
         run: npm test || echo "Tests completed"
+      
+      - name: Upload Frontend Coverage Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-coverage
+          path: coverage/
+          retention-days: 30
+        continue-on-error: true
 
   # Job 4: Build Frontend
   build-frontend:
@@ -188,3 +234,22 @@ jobs:
           echo "You can use SSH to connect to your server and pull the new Docker images"
           # Example:
           # ssh user@server 'cd /app && docker-compose pull && docker-compose up -d'
+  
+  # Job 7: Notification on Failure
+  notify-failure:
+    name: Notify on Failure
+    runs-on: ubuntu-latest
+    needs: [lint, security-audit, test-backend, test-frontend, build-frontend, build-docker, deploy]
+    if: failure()
+    
+    steps:
+      - name: Send Failure Notification
+        run: |
+          echo "🚨 CI/CD Pipeline Failed!"
+          echo "Branch: ${{ github.ref_name }}"
+          echo "Commit: ${{ github.sha }}"
+          echo "Commit Message: ${{ github.event.head_commit.message }}"
+          echo "Author: ${{ github.actor }}"
+          echo "Failed Job: Check the Actions tab for details"
+          echo ""
+          echo "View details at: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
